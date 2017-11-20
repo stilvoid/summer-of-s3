@@ -12,6 +12,19 @@ Resources:
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+            - !GetAtt FunctionRole.Arn
+          Action:
+          - s3:PutObjectAcl
+          Resource: !Sub arn:aws:s3:::${Bucket}/*
   Function:
     Type: AWS::Serverless::Function
     Properties:
@@ -27,17 +40,8 @@ Resources:
             - s3:ObjectCreated:*
             - s3:ObjectRemoved:*
       Policies:
-      - Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:ListBucket
-          - s3:PutObject
-          - s3:PutObjectAcl
-          Resource:
-          - !Sub 'arn:aws:s3:::${BucketName}'
-          - !Sub 'arn:aws:s3:::${BucketName}/*'
+      - S3CrudPolicy:
+          BucketName: !Ref BucketName
 Outputs:
   BucketName:
     Description: S3 bucket name
